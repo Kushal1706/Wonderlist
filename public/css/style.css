@@ -146,3 +146,27 @@ body{
     margin-right: 5px !important;
     margin-bottom: 5px !important;
 }
+
+.coming-soon {
+    text-align: center;
+    padding: 50px;
+  }
+  
+  .coming-soon h2 {
+    font-size: 2em;
+    color: #333;
+  }
+  
+  .coming-soon p {
+    font-size: 1.2em;
+  }
+  
+  .coming-soon a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .coming-soon a:hover {
+    text-decoration: underline;
+  }
+  

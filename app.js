@@ -15,12 +15,24 @@ const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const User = require("./models/user.js");
-const Listing = require('./models/listing'); // Adjust path if needed
-
+const Listing = require('./models/listing');
 
 const listingRouter = require("./routes/listing.js");
 const reviewRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
+
+// =============================================
+// TEMPLATE FUNCTION (Add right after styles)
+// =============================================
+const categoryPage = (title, description) => `
+    <div style="${containerStyle}">
+        <h1 style="${titleStyle}">${title}</h1>
+        <p style="${textStyle}">${description}</p>
+        <div style="margin-top: 40px;">
+            <a href="/listings" style="${linkStyle}">Browse all listings</a>
+        </div>
+    </div>
+`;
 
 const dbUrl = process.env.ATLASDB_URL;
 
@@ -31,7 +43,12 @@ main().then(() => {
 });
 
 async function main() {
-    await mongoose.connect(dbUrl);
+    await mongoose.connect(dbUrl, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        tls: true,
+        tlsAllowInvalidCertificates: false
+    });
 }
 
 app.set("view engine", "ejs");
@@ -65,17 +82,11 @@ const sessionOptions = {
     }
 };
 
-// app.get("/", (req,res) =>{
-//     res.send("Hi, I am root");
-// });
-
 app.use(session(sessionOptions));
 app.use(flash());
-
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
-
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
@@ -86,36 +97,102 @@ app.use((req,res,next) =>{
     next();
 });
 
-// app.get("/demouser", async(req,res) =>{
-//     let fakeUser = new User({
-//         email:"student@gmail.com",
-//         username:"student1",
-//     });
-
-//     let registeredUser = await User.register(fakeUser, "helloworl!");
-//     res.send(registeredUser);
-// });
-
 app.use("/listings", listingRouter);
 app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
 app.get('/search', async (req, res) => {
     const query = req.query.q;
-  
-    // Example: Assuming you're using MongoDB with Mongoose
     try {
       const results = await Listing.find({
-        title: new RegExp(query, 'i') // 'i' for case-insensitive search
+        title: new RegExp(query, 'i')
       });
       res.render('listings/searchResults', { results, query });
     } catch (err) {
       console.error(err);
       res.redirect('/listings');
     }
-  });
-  
+});
 
+app.get("/trending", (req, res) => {
+    res.render("categories/show", {
+        title: "Trending Destinations",
+        description: "Discover the most popular stays around the world"
+    });
+});
+
+app.get("/rooms", (req, res) => {
+    res.render("categories/show", {
+        title: "Unique Rooms",
+        description: "Find extraordinary spaces that tell a story"
+    });
+});
+
+app.get("/iconic-cities", (req, res) => {
+    res.render("categories/show", {
+        title: "Iconic Cities",
+        description: "Live like a local in the world's most famous cities"
+    });
+});
+
+app.get("/mountains", (req, res) => {
+    res.render("categories/show", {
+        title: "Mountain Escapes",
+        description: "Breathtaking views and fresh alpine air"
+    });
+});
+
+app.get("/castles", (req, res) => {
+    res.render("categories/show", {
+        title: "Castle Stays",
+        description: "Live your royal fantasy in historic castles"
+    });
+});
+
+app.get("/amazing-pools", (req, res) => {
+    res.render("categories/show", {
+        title: "Amazing Pools",
+        description: "Dive into properties with stunning swimming pools"
+    });
+});
+
+app.get("/camping", (req, res) => {
+    res.render("categories/show", {
+        title: "Camping Adventures",
+        description: "Unique outdoor experiences in nature"
+    });
+});
+
+app.get("/farms", (req, res) => {
+    res.render("categories/show", {
+        title: "Farm Stays",
+        description: "Rustic charm and agricultural experiences"
+    });
+});
+
+app.get("/arctic", (req, res) => {
+    res.render("categories/show", {
+        title: "Arctic Getaways",
+        description: "Experience the magic of the polar regions"
+    });
+});
+
+app.get("/domes", (req, res) => {
+    res.render("categories/show", {
+        title: "Dome Stays",
+        description: "Sleep under the stars in geodesic domes"
+    });
+});
+
+app.get("/boats", (req, res) => {
+    res.render("categories/show", {
+        title: "Boat Stays",
+        description: "Sleep on the water in unique vessels"
+    });
+});
+
+
+//error handlers
 app.all("*", (req,res,next) =>{
     next(new ExpressError(404, "Page Not Found!"));
 });
@@ -123,22 +200,8 @@ app.all("*", (req,res,next) =>{
 app.use((err,req,res,next) =>{
     let {statusCode=500, message = "something went wrong!"} = err;
     res.status(statusCode).render("./listings/error.ejs",{message});
-    //res.status(statusCode).send(message);
 });
 
 app.listen(8080, () => {
     console.log("server is listening to port 8080");
 });
-
-// app.get("/testListing",async(req,res)=>{
-//     let sampleListing = new Listing({
-//         title:"My New Villa",
-//         description: "By the beach",
-//         price: 1200,
-//         location: "Calangute, Goa",
-//         country:"India",
-//     });
-//     await sampleListing.save();
-//     console.log("sample was saved");
-//     res.send("successful testing");
-// });
